@@ -1,3 +1,4 @@
 pytest
 git+https://github.com/RidaAyed/sugarcrm
 requests
+faker
