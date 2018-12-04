@@ -24,6 +24,11 @@ fake = Faker()
 COUNT = 1
 PHONE164 = re.compile('^\+?[1-9]\d{1,14}$')
 
+def test_env(session):
+    assert os.environ['URL']
+    assert os.environ['USERNAME']
+    assert os.environ['PASSWORD']
+
 
 @pytest.fixture(scope="module")
 def session(request):
