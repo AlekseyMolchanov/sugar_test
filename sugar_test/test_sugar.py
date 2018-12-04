@@ -24,6 +24,9 @@ fake = Faker()
 COUNT = 1
 PHONE164 = re.compile('^\+?[1-9]\d{1,14}$')
 
+
+print(os.environ)
+
 def test_env(session):
     assert os.environ['URL']
     assert os.environ['USERNAME']
