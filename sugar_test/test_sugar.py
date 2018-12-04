@@ -4,31 +4,21 @@
 import os
 import re
 from random import randint, choice
-from sugarcrm import Session, Account, Contact
-
-# import logging
-# import httplib as http_client
-# http_client.HTTPConnection.debuglevel = 1
-
-# logging.basicConfig()
-# logging.getLogger().setLevel(logging.DEBUG)
-# requests_log = logging.getLogger("requests.packages.urllib3")
-# requests_log.setLevel(logging.DEBUG)
-# requests_log.propagate = True
 
 import pytest
+
+from sugarcrm import Session, Account, Contact
 from faker import Faker
 
 fake = Faker()
 
-COUNT = 1
+COUNT = os.environ.get('COUNT')
 PHONE164 = re.compile('^\+?[1-9]\d{1,14}$')
 
-def test_env(session):
-    assert os.environ['URL']
-    assert os.environ['USERNAME']
-    assert os.environ['PASSWORD']
-
+assert os.environ['COUNT']
+assert os.environ['URL']
+assert os.environ['USERNAME']
+assert os.environ['PASSWORD']
 
 @pytest.fixture(scope="module")
 def session(request):
