@@ -12,7 +12,7 @@ from faker import Faker
 
 fake = Faker()
 
-COUNT = os.environ.get('COUNT')
+COUNT = int(os.environ.get('COUNT'))
 PHONE164 = re.compile('^\+?[1-9]\d{1,14}$')
 
 assert os.environ['COUNT']
