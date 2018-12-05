@@ -332,8 +332,8 @@ def test_Contact_LastName_equals_one_random_last_name(session):
     '''
     12. Assert Contact.LastName equals one random.last_name
     '''
-    names = map(lambda c: c.last_name, get_contacts(session))
-    checks = map(lambda name: check_contact_Lastname(name), get_contacts(session))
+    names = list(map(lambda c: c.last_name, get_contacts(session)))
+    checks = map(lambda name: check_contact_Lastname(name), names)
     print(names)
     assert all(checks)
 
