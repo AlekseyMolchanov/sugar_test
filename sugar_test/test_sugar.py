@@ -13,7 +13,7 @@ from faker import Faker
 fake = Faker()
 
 COUNT = int(os.environ.get('COUNT'))
-PHONE164 = re.compile('^\+?[1-9]\d{1,14}$')
+PHONE164 = re.compile(r'^\+?[1-9]\d{1,14}$')
 
 assert os.environ['COUNT']
 assert os.environ['URL']
@@ -267,7 +267,7 @@ def test_sum_of_created_account_equals_100(session):
     '''
     assert len(get_accounts(session)) == COUNT
 
-@pytest.mark.skip(reason="not ready")
+@pytest.mark.skip(reason="duplicate test")
 def test_sum_of_each_child_contact_is_between_1_and_10():
     '''
     02. Assert sum of each child contact is between 1 and 10
