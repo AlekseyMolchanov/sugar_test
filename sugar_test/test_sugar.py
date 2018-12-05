@@ -68,7 +68,7 @@ def check_account_City(value):
     '''
     return value and len(str(value).split(' ')) == 1
 
-def check_account_PhoneNumber(value):
+def check_PhoneNumber(value):
     '''
     A *random*  e.g. +41441234567 (iso164 string)
     '''
@@ -150,7 +150,7 @@ def generate_Phone():
             str(fake.random_int(min=1, max=999)).zfill(3), 
             str(fake.random_int(min=1234567, max=9876543)), 
         )
-        if check_account_PhoneNumber(phone):
+        if check_PhoneNumber(phone):
             yield phone
 
 def generate_Email(first_name, last_name):
@@ -309,12 +309,11 @@ def test_Account_City_equals_one_word():
     '''
     pass
 
-@pytest.mark.skip(reason="not ready")
 def test_Account_PhoneNumber_equals_iso164_string():
     '''
     08. Assert Account.PhoneNumber equals iso164 string
     '''
-    pass
+    assert all(map(lambda a: check_PhoneNumber(a.phone_work), get_accounts(session)))
 
 @pytest.mark.skip(reason="not ready")
 def test_Account_Industry_equels_Banking_or_Dairy_or_Services():
@@ -351,12 +350,11 @@ def test_Contact_Position_equals_CEO_or_CFO_or_CIO():
     '''
     pass
 
-@pytest.mark.skip(reason="not ready")
-def test_Contact_PhoneNumber_equals_iso164_string():
+def test_Contact_PhoneNumber_equals_iso164_string(session):
     '''
     14. Assert Contact.PhoneNumber equals iso164 string
     '''
-    pass
+    assert all(map(lambda c: check_PhoneNumber(c.phone_office), get_contacts(session)))
 
 @pytest.mark.skip(reason="not ready")
 def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com():
