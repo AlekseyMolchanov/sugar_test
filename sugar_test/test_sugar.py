@@ -273,12 +273,11 @@ def test_sum_of_each_child_contact_is_between_1_and_10():
     '''
     pass
 
-@pytest.mark.skip(reason="not ready")
-def test_contact_has_parent_account():
+def test_contact_has_parent_account(session):
     '''
     03. Assert contact has parent account
     '''
-    pass
+    assert all(map(lambda c: c.account_id, get_contacts(session)))
 
 def test_Account_Name_equals_two_words(session):
     '''
