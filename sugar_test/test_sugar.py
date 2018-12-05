@@ -260,12 +260,11 @@ def test_generate(session):
             )
         count+=1
 
-@pytest.mark.skip(reason="not ready")
-def test_sum_of_created_account_equals_100():
+def test_sum_of_created_account_equals_100(session):
     '''
     01. Assert sum of created account equals 100
     '''
-    pass
+    assert len(get_accounts(session)) == COUNT
 
 @pytest.mark.skip(reason="not ready")
 def test_sum_of_each_child_contact_is_between_1_and_10():
@@ -281,33 +280,29 @@ def test_contact_has_parent_account():
     '''
     pass
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_Name_equals_two_words():
+def test_Account_Name_equals_two_words(session):
     '''
     04. Assert Account.Name equals two words
     '''
-    pass
+    assert all(map(lambda a: check_account_CompanyName(a.name), get_accounts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_Street_equals_one_word_and_one_digit():
+def test_Account_Street_equals_one_word_and_one_digit(session):
     '''
     05. Assert Account.Street equals one word and one digit
     '''
-    pass
+    assert all(map(lambda a: check_account_Street(a.billing_address_street), get_accounts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_ZIP_equals_four_digits():
+def test_Account_ZIP_equals_four_digits(session):
     '''
     06. Assert Account.ZIP equals four digits
     '''
-    pass
+    assert all(map(lambda a: check_account_ZIP(a.billing_address_postalcode), get_accounts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_City_equals_one_word():
+def test_Account_City_equals_one_word(session):
     '''
     07. Assert Account.City equals one word
     '''
-    pass
+    assert all(map(lambda a: check_account_City(a.billing_address_city), get_accounts(session)))
 
 def test_Account_PhoneNumber_equals_iso164_string(session):
     '''
@@ -315,12 +310,11 @@ def test_Account_PhoneNumber_equals_iso164_string(session):
     '''
     assert all(map(lambda a: check_PhoneNumber(a.phone_office), get_accounts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_Industry_equels_Banking_or_Dairy_or_Services():
+def test_Account_Industry_equels_Banking_or_Dairy_or_Services(session):
     '''
     09. Assert Account.Industry equels Banking or Dairy or Services
     '''
-    pass
+    assert all(map(lambda a: check_account_Industry(a.industry), get_accounts(session)))
 
 @pytest.mark.skip(reason="not ready")
 def test_Account_ChildContacts_Sum_is_between_0_and_10_child():
