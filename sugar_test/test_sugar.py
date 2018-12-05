@@ -115,11 +115,12 @@ def check_contact_Position(value):
     '''
     return  value in ['CEO', 'CFO', 'CIO']
             
-def check_contact_Email(value):
+def check_contact_Email(value, first_name, last_name):
     '''
     A *random* Email e.g. randy.jones@mailinator.com
     '''
-    pass
+    return value == generate_Email(first_name, last_name)
+
 #endregion 
 #region generate_
 
@@ -350,12 +351,12 @@ def test_Contact_PhoneNumber_equals_iso164_string(session):
     '''
     assert all(map(lambda c: check_PhoneNumber(c.phone_work), get_contacts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com():
+def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com(session):
     '''
     15. Assert Contact.Email equals random.first_name.random.last_name@mailinator.com
     '''
-    pass
+    checks = list(map(lambda c: check_contact_Email(c.email1, c.first_name, c.last_name), get_contacts(session)))
+    assert all(checks)
 
 
 def test_every_is_deleted(session):
