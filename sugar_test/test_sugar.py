@@ -97,16 +97,16 @@ def check_contact_Firstname(value):
     '''
     A *random* Firstname e.g. Randy
     '''
-    return value and \
-            len(str(value).strip()) == 1 and \
+    return value and value.strip() \
+            len(str(value).split(' ')) == 1 and \
             not str(value).isdigit()
 
 def check_contact_Lastname(value):
     '''
     A *random* Lastname e.g. Jones
     '''
-    return value and \
-            len(str(value).strip()) == 1 and \
+    return value and value.strip() \
+            len(str(value).split(' ')) == 1 and \
             not str(value).isdigit()
 
 def check_contact_Position(value):
