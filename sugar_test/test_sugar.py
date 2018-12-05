@@ -97,7 +97,7 @@ def check_contact_Firstname(value):
     '''
     A *random* Firstname e.g. Randy
     '''
-    return value and value.strip() \
+    return value and value.strip() and \
             len(str(value).split(' ')) == 1 and \
             not str(value).isdigit()
 
@@ -105,7 +105,7 @@ def check_contact_Lastname(value):
     '''
     A *random* Lastname e.g. Jones
     '''
-    return value and value.strip() \
+    return value and value.strip() and \
             len(str(value).split(' ')) == 1 and \
             not str(value).isdigit()
 
