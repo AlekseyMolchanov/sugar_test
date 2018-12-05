@@ -316,12 +316,15 @@ def test_Account_Industry_equels_Banking_or_Dairy_or_Services(session):
     '''
     assert all(map(lambda a: check_account_Industry(a.industry), get_accounts(session)))
 
-@pytest.mark.skip(reason="not ready")
-def test_Account_ChildContacts_Sum_is_between_0_and_10_child():
+def test_Account_ChildContacts_Sum_is_between_0_and_10_child(session):
     '''
     10. Assert Account.ChildContacts.Sum is between 0 and 10 child
     '''
-    pass
+    accounts = get_accounts(session)
+    if accounts:
+        for account in accounts:
+            linked = session.get_entry("Accounts", account.id, links={'Contacts': ['id']})            
+            assert (len(linked.contacts) >= 0) and (len(linked.contacts) <= 10)
 
 def test_Contact_FirstName_equals_one_random_first_name(session):
     '''
