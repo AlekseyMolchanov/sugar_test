@@ -326,15 +326,16 @@ def test_Contact_FirstName_equals_one_random_first_name(session):
     '''
     11. Assert Contact.FirstName equals one random.first_name
     '''
-    assert all(map(lambda c: check_contact_Firstname(c.first_name), get_contacts(session)))
+    names = list(map(lambda c: c.first_name, get_contacts(session)))
+    checks = list(map(lambda name: check_contact_Firstname(name), names))
+    assert all(checks)
 
 def test_Contact_LastName_equals_one_random_last_name(session):
     '''
     12. Assert Contact.LastName equals one random.last_name
     '''
     names = list(map(lambda c: c.last_name, get_contacts(session)))
-    checks = map(lambda name: check_contact_Lastname(name), names)
-    print(names)
+    checks = list(map(lambda name: check_contact_Lastname(name), names))
     assert all(checks)
 
 def test_Contact_Position_equals_CEO_or_CFO_or_CIO(session):
