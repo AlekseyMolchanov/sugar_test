@@ -27,14 +27,16 @@ def session(request):
     password = os.environ['PASSWORD']
     session = Session(url, username, password)
 
-    cleanup(session)
+    # cleanup(session)
 
     def teardown_module():
-        cleanup(session)
+        # cleanup(session)
         pass
 
     request.addfinalizer(teardown_module)
     return session
+
+#region check_
 
 def check_account_CompanyName(value):
     '''
@@ -118,29 +120,54 @@ def check_contact_Email(value):
     A *random* Email e.g. randy.jones@mailinator.com
     '''
     pass
+#endregion 
+#region generate_
 
+def generate_CompanyName():
+    while 1:
+        company_name = fake.company()
+        if check_account_CompanyName(company_name):
+            yield company_name
+
+def generate_Street():
+    while 1:
+        street = '%s %s' % (
+            fake.street_name().split(' ')[0], 
+            fake.random_int(min=1000, max=9999))
+        if check_account_Street(street):
+            yield street
+
+def generate_City():
+    while 1:
+        city = fake.city()
+        if check_account_City(city):
+            yield city
+
+def generate_Phone():
+    while 1:
+        phone = "+%s%s%s" % (
+            fake.random_int(min=1, max=999),
+            str(fake.random_int(min=1, max=999)).zfill(3), 
+            str(fake.random_int(min=1234567, max=9876543)), 
+        )
+        if check_account_PhoneNumber(phone):
+            yield phone
+
+def generate_Email(first_name, last_name):
+    email = '%s.%s@mailinator.com' % (first_name.lower(), last_name.lower())
+    return email 
+
+def generate_Position():
+    return choice(['CEO', 'CFO', 'CIO'])
+
+def generate_Industry():
+    return choice(['Banking', 'Dairy', 'Services'])
+
+def generate_ZIP():
+    return fake.numerify(text="####")
+ #endregion 
 
 ids = lambda collection: map(lambda each:each.id, collection)
-'''
-01. Assert sum of created account equals 100
-02. Assert sum of each child contact is between 1 and 10
-03. Assert contact has parent account
-04. Assert Account.Name equals two words
-05. Assert Account.Street equals one word and one digit
-06. Assert Account.ZIP equals four digits
-07. Assert Account.City equals one word
-08. Assert Account.PhoneNumber equals iso164 string
-09. Assert Account.Industry equels Banking or Dairy or Services
-10. Assert Account.ChildContacts.Sum is between 0 and 10 child
-
-11. Assert Contact.FirstName equals one random.first_name
-12. Assert Contact.LastName equals one random.last_name
-13. Assert Contact.Position equals CEO or CFO or CIO
-14. Assert Contact.PhoneNumber equals iso164 string
-15. Assert Contact.Email equals random.first_name.random.last_name@mailinator.com
-16. Assert every account is deleted
-17. Assert every contact is deleted
-'''
 
 def get_accounts(session, deleted=False, account_type='test'):
     condition = dict(deleted=deleted)
@@ -159,6 +186,10 @@ def create_account(session, name, street, ZIP, city, phoneNumber, industry, acco
     )
     return session.set_entry(account)
 
+def get_contacts(session, deleted=False):
+    condition = dict(deleted=deleted)
+    return session.get_entry_list(Contact(**condition))
+
 def create_contact(session, account_id, first_name, last_name, position, email, phone):
     contact = Contact(
         account_id=account_id,
@@ -170,78 +201,46 @@ def create_contact(session, account_id, first_name, last_name, position, email, 
     )
     return session.set_entry(contact)
 
-def get_contacts(session, deleted=False):
-    condition = dict(deleted=deleted)
-    return session.get_entry_list(Contact(**condition))
+def cleanup(session):
+    accounts = get_accounts(session)
+    if accounts:
+        for account in accounts:
+            linked = session.get_entry("Accounts", account.id, links={'Contacts': ['id']})            
+            for link in linked.contacts:
+                contact = session.get_entry_list(Contact(id=link.id)).pop()
+                contact.deleted = True
+                session.set_entry(contact)
+                
+            account.deleted = True
+            session.set_entry(account)
+    return True
 
+@pytest.mark.skip(reason="not needed")
 def test_get_modules(session):
     modules = session.get_available_modules()
     modules_keys = [m.module_key for m in modules]
     assert 'Accounts' in modules_keys and 'Contacts' in modules_keys
 
-def generate_CompanyName(count):
-    stack = []
-    while len(stack) <= count:
-        company_name = fake.company()
-        check_account_CompanyName(company_name) and stack.append(company_name)
-    return stack
-
-def generate_Street(count):
-    stack = []
-    while len(stack) <= count:
-        street = '%s %s' % (
-            fake.street_name().split(' ')[0], 
-            fake.random_int(min=1000, max=9999))
-        check_account_Street(street) and stack.append(street)
-    return stack
-
-def generate_City(count):
-    stack = []
-    while len(stack) <= count:
-        city = fake.city()
-        check_account_City(city) and stack.append(city)
-    return stack
-
-def generate_Phone(count):
-    stack = []
-    while len(stack) <= count:
-        phone = "+%s%s%s" % (
-            fake.random_int(min=1, max=999),
-            str(fake.random_int(min=1, max=999)).zfill(3), 
-            str(fake.random_int(min=1234567, max=9876543)), 
-        )
-        check_account_PhoneNumber(phone) and stack.append(phone)
-    return stack
-
 def test_generate(session):
     count = 0
-    companys = generate_CompanyName(COUNT)
-    streets = generate_Street(COUNT)
-    citys = generate_City(COUNT)
-    phones = generate_Phone(COUNT)
+    companys = generate_CompanyName()
+    streets = generate_Street()
+    citys = generate_City()
+    phones = generate_Phone()
 
-    while count <= COUNT:
-        company_name = companys.pop()
-        street = streets.pop()
-        city = citys.pop()
-        phone = phones.pop()
-        ZIP = fake.numerify(text="####")
-        industry = choice(['Banking', 'Dairy', 'Services'])
-        contacts_count = randint(1, 10)
-
-        count+=1
+    while count <= COUNT: 
         
         account = create_account(
             session, 
-            company_name,
-            street, 
-            ZIP, 
-            city, 
-            phone, 
-            industry
+            next(companys),
+            next(streets), 
+            generate_ZIP(), 
+            next(citys), 
+            next(phones), 
+            generate_Industry()
         )
 
-        for _ in range(contacts_count):
+        for _ in range(randint(1, 10)):
             sex = randint(0, 1)
             if sex:
                 first_name = fake.first_name_male()
@@ -250,34 +249,137 @@ def test_generate(session):
                 first_name = fake.first_name_female()
                 last_name = fake.last_name_female()
 
-            email = '%s.%s@mailinator.com' % (first_name.lower(), last_name.lower())
-            position = choice(['CEO', 'CFO', 'CIO'])
+            contact = create_contact(
+                session, 
+                account.id, 
+                first_name, 
+                last_name, 
+                generate_Position(), 
+                generate_Email(first_name, last_name), 
+                next(phones)
+            )
+        count+=1
 
-            contact = create_contact(session, 
-                account.id, first_name, last_name, position, 
-                email, generate_Phone(1).pop())
-    
-def cleanup(session):
-    
-    contacts_index = {}
-    contacts_acc_index = {}
-    
-    contacts = get_contacts(session)
-    for contact in contacts:
-        if hasattr(contact, 'account_id'):
-            contacts_index[contact.id] = contact
+@pytest.mark.skip(reason="not ready")
+def test_sum_of_created_account_equals_100():
+    '''
+    01. Assert sum of created account equals 100
+    '''
+    pass
 
-            if contact.account_id not in contacts_acc_index:
-                contacts_acc_index[contact.account_id] = []
-            contacts_acc_index[contact.account_id].append(contact.id)
+@pytest.mark.skip(reason="not ready")
+def test_sum_of_each_child_contact_is_between_1_and_10():
+    '''
+    02. Assert sum of each child contact is between 1 and 10
+    '''
+    pass
 
-    accounts = get_accounts(session)
-    if accounts:
-        for account in accounts:
-            for contact_id in contacts_index.get(account.id) or []:
-                contact = contacts_index.get(contact_id)
-                contact.deleted = True
-                session.set_entry(account)
+@pytest.mark.skip(reason="not ready")
+def test_contact_has_parent_account():
+    '''
+    03. Assert contact has parent account
+    '''
+    pass
 
-            account.deleted = True
-            session.set_entry(account)
+@pytest.mark.skip(reason="not ready")
+def test_Account_Name_equals_two_words():
+    '''
+    04. Assert Account.Name equals two words
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_Street_equals_one_word_and_one_digit():
+    '''
+    05. Assert Account.Street equals one word and one digit
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_ZIP_equals_four_digits():
+    '''
+    06. Assert Account.ZIP equals four digits
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_City_equals_one_word():
+    '''
+    07. Assert Account.City equals one word
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_PhoneNumber_equals_iso164_string():
+    '''
+    08. Assert Account.PhoneNumber equals iso164 string
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_Industry_equels_Banking_or_Dairy_or_Services():
+    '''
+    09. Assert Account.Industry equels Banking or Dairy or Services
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Account_ChildContacts_Sum_is_between_0_and_10_child():
+    '''
+    10. Assert Account.ChildContacts.Sum is between 0 and 10 child
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Contact_FirstName_equals_one_random_first_name():
+    '''
+    11. Assert Contact.FirstName equals one random.first_name
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Contact_LastName_equals_one_random_last_name():
+    '''
+    12. Assert Contact.LastName equals one random.last_name
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Contact_Position_equals_CEO_or_CFO_or_CIO():
+    '''
+    13. Assert Contact.Position equals CEO or CFO or CIO
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Contact_PhoneNumber_equals_iso164_string():
+    '''
+    14. Assert Contact.PhoneNumber equals iso164 string
+    '''
+    pass
+
+@pytest.mark.skip(reason="not ready")
+def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com():
+    '''
+    15. Assert Contact.Email equals random.first_name.random.last_name@mailinator.com
+    '''
+    pass
+
+
+def test_every_is_deleted(session):
+    '''
+    16. Assert every account is deleted
+    '''
+    assert cleanup(session)
+
+def test_every_account_is_deleted(session):
+    '''
+    16. Assert every account is deleted
+    '''
+    assert not get_accounts(session)
+
+def test_every_contact_is_deleted(session):
+    '''
+    17. Assert every contact is deleted
+    '''
+    assert not get_contacts(session)
