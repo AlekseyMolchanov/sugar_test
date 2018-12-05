@@ -309,11 +309,11 @@ def test_Account_City_equals_one_word():
     '''
     pass
 
-def test_Account_PhoneNumber_equals_iso164_string():
+def test_Account_PhoneNumber_equals_iso164_string(session):
     '''
     08. Assert Account.PhoneNumber equals iso164 string
     '''
-    assert all(map(lambda a: check_PhoneNumber(a.phone_work), get_accounts(session)))
+    assert all(map(lambda a: check_PhoneNumber(a.phone_office), get_accounts(session)))
 
 @pytest.mark.skip(reason="not ready")
 def test_Account_Industry_equels_Banking_or_Dairy_or_Services():
@@ -354,7 +354,7 @@ def test_Contact_PhoneNumber_equals_iso164_string(session):
     '''
     14. Assert Contact.PhoneNumber equals iso164 string
     '''
-    assert all(map(lambda c: check_PhoneNumber(c.phone_office), get_contacts(session)))
+    assert all(map(lambda c: check_PhoneNumber(c.phone_work), get_contacts(session)))
 
 @pytest.mark.skip(reason="not ready")
 def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com():
