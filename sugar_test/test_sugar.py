@@ -328,13 +328,13 @@ def test_Contact_FirstName_equals_one_random_first_name(session):
     '''
     assert all(map(lambda c: check_contact_Firstname(c.first_name), get_contacts(session)))
 
-def test_Contact_LastName_equals_one_random_last_name():
+def test_Contact_LastName_equals_one_random_last_name(session):
     '''
     12. Assert Contact.LastName equals one random.last_name
     '''
     assert all(map(lambda c: check_contact_Lastname(c.last_name), get_contacts(session)))
 
-def test_Contact_Position_equals_CEO_or_CFO_or_CIO():
+def test_Contact_Position_equals_CEO_or_CFO_or_CIO(session):
     '''
     13. Assert Contact.Position equals CEO or CFO or CIO
     '''
