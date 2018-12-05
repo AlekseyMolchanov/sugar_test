@@ -322,26 +322,23 @@ def test_Account_ChildContacts_Sum_is_between_0_and_10_child():
     '''
     pass
 
-@pytest.mark.skip(reason="not ready")
-def test_Contact_FirstName_equals_one_random_first_name():
+def test_Contact_FirstName_equals_one_random_first_name(session):
     '''
     11. Assert Contact.FirstName equals one random.first_name
     '''
-    pass
+    assert all(map(lambda c: check_contact_Firstname(c.first_name), get_contacts(session)))
 
-@pytest.mark.skip(reason="not ready")
 def test_Contact_LastName_equals_one_random_last_name():
     '''
     12. Assert Contact.LastName equals one random.last_name
     '''
-    pass
+    assert all(map(lambda c: check_contact_Lastname(c.last_name), get_contacts(session)))
 
-@pytest.mark.skip(reason="not ready")
 def test_Contact_Position_equals_CEO_or_CFO_or_CIO():
     '''
     13. Assert Contact.Position equals CEO or CFO or CIO
     '''
-    pass
+    assert all(map(lambda c: check_contact_Position(c.title), get_contacts(session)))
 
 def test_Contact_PhoneNumber_equals_iso164_string(session):
     '''
