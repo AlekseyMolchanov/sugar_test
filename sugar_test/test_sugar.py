@@ -228,7 +228,7 @@ def test_generate(session):
     citys = generate_City()
     phones = generate_Phone()
 
-    while count <= COUNT: 
+    while count <= (COUNT - 1): 
         
         account = create_account(
             session, 
