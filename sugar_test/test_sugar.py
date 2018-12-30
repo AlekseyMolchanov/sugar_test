@@ -3,28 +3,27 @@
 
 import os
 import re
-from random import randint, choice
+from random import randint
+import generate
+import check
 
 import pytest
 
 from sugarcrm import Session, Account, Contact
-from faker import Faker
 
-fake = Faker()
 
-COUNT = int(os.environ.get('COUNT'))
-PHONE164 = re.compile(r'^\+?[1-9]\d{1,14}$')
+assert os.environ['SUGAR_CRM_COUNT']
+assert os.environ['SUGAR_CRM_URL']
+assert os.environ['SUGAR_CRM_USERNAME']
+assert os.environ['SUGAR_CRM_PASSWORD']
 
-assert os.environ['COUNT']
-assert os.environ['URL']
-assert os.environ['USERNAME']
-assert os.environ['PASSWORD']
+COUNT = int(os.environ.get('SUGAR_CRM_COUNT'))
 
 @pytest.fixture(scope="module")
 def session(request):
-    url = os.environ['URL']
-    username = os.environ['USERNAME']
-    password = os.environ['PASSWORD']
+    url = os.environ['SUGAR_CRM_URL']
+    username = os.environ['SUGAR_CRM_USERNAME']
+    password = os.environ['SUGAR_CRM_PASSWORD']
     session = Session(url, username, password)
 
     # cleanup(session)
@@ -35,138 +34,6 @@ def session(request):
 
     request.addfinalizer(teardown_module)
     return session
-
-#region check_
-
-def check_account_CompanyName(value):
-    '''
-    A *random* CompanyName e.g. John Doe (two words)
-    '''
-    return value and len(value.split(' ')) == 2
-
-def check_account_Street(value):
-    '''
-    A *random* Street e.g. Anystreet 1 (one word and one digit)
-    '''
-    _parts = value and value.split(' ')
-    return value and \
-            len(_parts) == 2 and \
-            any(map(lambda part: str(part).isdigit(), _parts)) and \
-            any(map(lambda part: not str(part).isdigit(), _parts))
-
-def check_account_ZIP(value):
-    '''
-    A *random* ZIP e.g. 1234 (four digits)
-    '''
-    return value and \
-            len(str(value).strip()) == 4 and \
-            str(value).isdigit()
-
-def check_account_City(value):
-    '''
-    A *random* City e.g. Smith (one word)
-    '''
-    return value and len(str(value).split(' ')) == 1
-
-def check_PhoneNumber(value):
-    '''
-    A *random*  e.g. +41441234567 (iso164 string)
-    '''
-    return PHONE164.match(value)
-
-def check_account_Industry(value):
-    '''
-    A *random* Industry e.g. Banking (one word)
-    '''
-    return value in ['Banking', 'Dairy', 'Services']
-
-
-def check_account_child(account):
-    '''
-    Between 0 and 10 child contacts (foreign key)
-    '''
-    pass
-
-def check_contact_Parent(value):
-    '''
-    Parent account ID *not random*
-    '''
-    pass
-
-def check_contact_Firstname(value):
-    '''
-    A *random* Firstname e.g. Randy
-    '''
-    return value and value.strip() and \
-            len(str(value).split(' ')) == 1 and \
-            not str(value).isdigit()
-
-def check_contact_Lastname(value):
-    '''
-    A *random* Lastname e.g. Jones
-    '''
-    return value and value.strip() and \
-            len(str(value).split(' ')) == 1 and \
-            not str(value).isdigit()
-
-def check_contact_Position(value):
-    '''
-    A *random* Position e.g. CEO (one word)
-    '''
-    return  value in ['CEO', 'CFO', 'CIO']
-            
-def check_contact_Email(value, first_name, last_name):
-    '''
-    A *random* Email e.g. randy.jones@mailinator.com
-    '''
-    return value == generate_Email(first_name, last_name)
-
-#endregion 
-#region generate_
-
-def generate_CompanyName():
-    while 1:
-        company_name = fake.company()
-        if check_account_CompanyName(company_name):
-            yield company_name
-
-def generate_Street():
-    while 1:
-        street = '%s %s' % (
-            fake.street_name().split(' ')[0], 
-            fake.random_int(min=1000, max=9999))
-        if check_account_Street(street):
-            yield street
-
-def generate_City():
-    while 1:
-        city = fake.city()
-        if check_account_City(city):
-            yield city
-
-def generate_Phone():
-    while 1:
-        phone = "+%s%s%s" % (
-            fake.random_int(min=1, max=999),
-            str(fake.random_int(min=1, max=999)).zfill(3), 
-            str(fake.random_int(min=1234567, max=9876543)), 
-        )
-        if check_PhoneNumber(phone):
-            yield phone
-
-def generate_Email(first_name, last_name):
-    email = '%s.%s@mailinator.com' % (first_name.lower(), last_name.lower())
-    return email 
-
-def generate_Position():
-    return choice(['CEO', 'CFO', 'CIO'])
-
-def generate_Industry():
-    return choice(['Banking', 'Dairy', 'Services'])
-
-def generate_ZIP():
-    return fake.numerify(text="####")
- #endregion 
 
 ids = lambda collection: map(lambda each:each.id, collection)
 
@@ -224,10 +91,10 @@ def test_get_modules(session):
 
 def test_generate(session):
     count = 0
-    companys = generate_CompanyName()
-    streets = generate_Street()
-    citys = generate_City()
-    phones = generate_Phone()
+    companys = generate.generate_CompanyName()
+    streets = generate.generate_Street()
+    citys = generate.generate_City()
+    phones = generate.generate_Phone()
 
     while count <= (COUNT - 1): 
         
@@ -235,28 +102,28 @@ def test_generate(session):
             session, 
             next(companys),
             next(streets), 
-            generate_ZIP(), 
+            generate.generate_ZIP(), 
             next(citys), 
             next(phones), 
-            generate_Industry()
+            generate.generate_Industry()
         )
 
         for _ in range(randint(1, 10)):
             sex = randint(0, 1)
             if sex:
-                first_name = fake.first_name_male()
-                last_name = fake.last_name_male()
+                first_name = generate.generate_first_name_male()
+                last_name = generate.generate_last_name_male()
             else:
-                first_name = fake.first_name_female()
-                last_name = fake.last_name_female()
+                first_name = generate.generate_first_name_female()
+                last_name = generate.generate_last_name_female()
 
             contact = create_contact(
                 session, 
                 account.id, 
                 first_name, 
                 last_name, 
-                generate_Position(), 
-                generate_Email(first_name, last_name), 
+                generate.generate_Position(), 
+                generate.generate_Email(first_name, last_name), 
                 next(phones)
             )
         count+=1
@@ -284,37 +151,37 @@ def test_Account_Name_equals_two_words(session):
     '''
     04. Assert Account.Name equals two words
     '''
-    assert all(map(lambda a: check_account_CompanyName(a.name), get_accounts(session)))
+    assert all(map(lambda a: check.check_account_CompanyName(a.name), get_accounts(session)))
 
 def test_Account_Street_equals_one_word_and_one_digit(session):
     '''
     05. Assert Account.Street equals one word and one digit
     '''
-    assert all(map(lambda a: check_account_Street(a.billing_address_street), get_accounts(session)))
+    assert all(map(lambda a: check.check_account_Street(a.billing_address_street), get_accounts(session)))
 
 def test_Account_ZIP_equals_four_digits(session):
     '''
     06. Assert Account.ZIP equals four digits
     '''
-    assert all(map(lambda a: check_account_ZIP(a.billing_address_postalcode), get_accounts(session)))
+    assert all(map(lambda a: check.check_account_ZIP(a.billing_address_postalcode), get_accounts(session)))
 
 def test_Account_City_equals_one_word(session):
     '''
     07. Assert Account.City equals one word
     '''
-    assert all(map(lambda a: check_account_City(a.billing_address_city), get_accounts(session)))
+    assert all(map(lambda a: check.check_account_City(a.billing_address_city), get_accounts(session)))
 
 def test_Account_PhoneNumber_equals_iso164_string(session):
     '''
     08. Assert Account.PhoneNumber equals iso164 string
     '''
-    assert all(map(lambda a: check_PhoneNumber(a.phone_office), get_accounts(session)))
+    assert all(map(lambda a: check.check_PhoneNumber(a.phone_office), get_accounts(session)))
 
 def test_Account_Industry_equels_Banking_or_Dairy_or_Services(session):
     '''
     09. Assert Account.Industry equels Banking or Dairy or Services
     '''
-    assert all(map(lambda a: check_account_Industry(a.industry), get_accounts(session)))
+    assert all(map(lambda a: check.check_account_Industry(a.industry), get_accounts(session)))
 
 def test_Account_ChildContacts_Sum_is_between_0_and_10_child(session):
     '''
@@ -331,7 +198,7 @@ def test_Contact_FirstName_equals_one_random_first_name(session):
     11. Assert Contact.FirstName equals one random.first_name
     '''
     names = list(map(lambda c: c.first_name, get_contacts(session)))
-    checks = list(map(lambda name: check_contact_Firstname(name), names))
+    checks = list(map(lambda name: check.check_contact_Firstname(name), names))
     assert all(checks)
 
 def test_Contact_LastName_equals_one_random_last_name(session):
@@ -339,26 +206,26 @@ def test_Contact_LastName_equals_one_random_last_name(session):
     12. Assert Contact.LastName equals one random.last_name
     '''
     names = list(map(lambda c: c.last_name, get_contacts(session)))
-    checks = list(map(lambda name: check_contact_Lastname(name), names))
+    checks = list(map(lambda name: check.check_contact_Lastname(name), names))
     assert all(checks)
 
 def test_Contact_Position_equals_CEO_or_CFO_or_CIO(session):
     '''
     13. Assert Contact.Position equals CEO or CFO or CIO
     '''
-    assert all(map(lambda c: check_contact_Position(c.title), get_contacts(session)))
+    assert all(map(lambda c: check.check_contact_Position(c.title), get_contacts(session)))
 
 def test_Contact_PhoneNumber_equals_iso164_string(session):
     '''
     14. Assert Contact.PhoneNumber equals iso164 string
     '''
-    assert all(map(lambda c: check_PhoneNumber(c.phone_work), get_contacts(session)))
+    assert all(map(lambda c: check.check_PhoneNumber(c.phone_work), get_contacts(session)))
 
 def test_Contact_Email_equals_random_first_name_random_last_name_mailinator_com(session):
     '''
     15. Assert Contact.Email equals random.first_name.random.last_name@mailinator.com
     '''
-    checks = list(map(lambda c: check_contact_Email(c.email1, c.first_name, c.last_name), get_contacts(session)))
+    checks = list(map(lambda c: check.check_contact_Email(c.email1, c.first_name, c.last_name), get_contacts(session)))
     assert all(checks)
 
 
