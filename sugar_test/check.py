@@ -4,7 +4,6 @@
 import os
 import re
 
-COUNT = int(os.environ.get('SUGAR_CRM_COUNT'))
 PHONE164 = re.compile(r'^\+?[1-9]\d{1,14}$')
 
 #region check_
