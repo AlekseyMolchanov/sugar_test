@@ -5,10 +5,26 @@ from faker import Faker
 fake = Faker()
 
 from random import randint, choice
-
+from datetime import datetime, timedelta
 import check
 
 #region generate_
+
+def generate_person(sex=None):
+    if sex is None:
+        sex = choice([0,1])
+
+    salutation = [None, 'Dr.', 'Prof.']
+    
+    if sex:
+        salutation += ['Mr.']
+    else:
+        salutation += ['Ms.']
+
+    if sex:
+        return generate_first_name_male(), generate_last_name_male(), 1, choice(salutation)
+    return generate_first_name_female(), generate_last_name_female(), 0, choice(salutation)
+
 def generate_first_name_male():
     return fake.first_name_male()
 
@@ -63,4 +79,22 @@ def generate_Industry():
 
 def generate_ZIP():
     return fake.numerify(text="####")
+ 
+def generate_Country():
+    return fake.country()
+
+def generate_AccountType():
+    return choice(['Analyst', 'Competitor', 'Customer', 'Integrator',
+                        'Investor', 'Other', 'Partner', 'Press', 'Prospect', 'Reseller'])
+
+def generate_dates_range(hours=1, fmt="%Y-%m-%dT%H:%M:%S-00:00"):
+    # yyyy-mm-ddThh:mm:ss-00:00
+    s = datetime.now() + timedelta(minutes=randint(240, 1200)) 
+    e = s + timedelta(hours=hours)
+    return s.strftime(fmt), e.strftime(fmt)
+
+def generate_now(hours=0, fmt="%Y-%m-%dT%H:%M:%S-00:00"):
+    # yyyy-mm-ddThh:mm:ss-00:00
+    s = datetime.now()  + timedelta(hours=hours)
+    return s.strftime(fmt)
  #endregion 
